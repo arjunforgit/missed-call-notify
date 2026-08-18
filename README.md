@@ -85,6 +85,8 @@ Calculate weeks since July 27 → even/odd → determine slot (even_day / even_n
 - **MacroDroid battery:** must be set to `Unrestricted` (Android settings)
 - **n8n workflow:** must be `Published/Active` at all times
 
+- ![Workflow Overview](screenshots/workflow-overview.png)
+
 ## Notes
 - Replace webhook URL with your own before use
 - MacroDroid `Call Ended` trigger fires for both missed and answered calls — gap threshold handles dedup
