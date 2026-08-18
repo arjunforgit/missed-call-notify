@@ -1,6 +1,6 @@
 # missed-call-notify-macrodroid
 
-> CM Residency Salem — Missed call detection & staff notification automation
+> Missed call detection & staff notification automation
 
 ## Stack
 - **Trigger:** MacroDroid (Android) — 3 macros
