@@ -1,0 +1,1103 @@
+{
+  "name": "missed-call-notify-macrodroid",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "call-trigger",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        2784,
+        1296
+      ],
+      "id": "4d2960db-9d36-4bb8-80f2-7dba09ebce60",
+      "name": "Missed Call Trigger",
+      "webhookId": "b4f840ea-0b62-413b-b297-b556a4b7b271"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"👤 {{ $('Missed Call Trigger').item.json.body.name || 'Unknown' }} | <tel:{{ $('Missed Call Trigger').item.json.body.phone }}|{{ $('Missed Call Trigger').item.json.body.phone }}> | Missed Call 🔴\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4384,
+        1392
+      ],
+      "id": "946d11f6-5670-41f1-a130-0deed2beaddb",
+      "name": "Send to Slack"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "93407d58-10d8-48ce-8d79-189093b5ee55",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3952,
+        1264
+      ],
+      "id": "eea1369c-aa5a-42ce-ace4-9f0f756642a4",
+      "name": "Is Already Pending?"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "missed_call",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "157ce055-f244-4cd0-8f90-7c2c266f6257"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "missed_call"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "e7a90ea1-25a3-4900-9330-7e82d473e263",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "call_started",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "call_started"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "7e369e06-f58b-4aa6-bd3e-59e19f4778f8",
+                    "leftValue": "={{ $json.body.type }}",
+                    "rightValue": "call_ended",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "call_ended"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        3056,
+        1280
+      ],
+      "id": "d1035d01-019e-4658-a8e4-a9bd8134d70a",
+      "name": "Route By Type"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "WgJmnGTlPdzWmC3Q",
+          "mode": "list",
+          "cachedResultName": "missed_calls_status",
+          "cachedResultUrl": "/projects/0q3nHZcmCs2I9zJ5/datatables/WgJmnGTlPdzWmC3Q"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "keyValue": "={{ $json.body.phone }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3680,
+        1264
+      ],
+      "id": "c233ac4f-624c-4245-83be-b17b87287f35",
+      "name": "Check If Pending",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "missed_calls_status",
+        "columns": {
+          "column": [
+            {
+              "name": "phone"
+            },
+            {
+              "name": "status"
+            },
+            {
+              "name": "missed_time"
+            },
+            {
+              "name": "name"
+            },
+            {
+              "name": "call_start_time"
+            }
+          ]
+        },
+        "options": {
+          "createIfNotExists": true
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2784,
+        1600
+      ],
+      "id": "0e60ce3f-7e1d-48f2-99be-a4df1ff97b2c",
+      "name": "missed_calls_status"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "WgJmnGTlPdzWmC3Q",
+          "mode": "list",
+          "cachedResultName": "missed_calls_status",
+          "cachedResultUrl": "/projects/0q3nHZcmCs2I9zJ5/datatables/WgJmnGTlPdzWmC3Q"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "phone": "={{ $('Missed Call Trigger').item.json.body.phone }}",
+            "status": "pending",
+            "missed_time": "={{ $('Missed Call Trigger').item.json.body.time }}",
+            "name": "={{ $('Missed Call Trigger').item.json.body.name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "missed_time",
+              "displayName": "missed_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "call_start_time",
+              "displayName": "call_start_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3968,
+        1552
+      ],
+      "id": "f6408834-cadf-4d99-a178-32c0440d2a5e",
+      "name": "Save New Missed Call"
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "WgJmnGTlPdzWmC3Q",
+          "mode": "list",
+          "cachedResultName": "missed_calls_status",
+          "cachedResultUrl": "/projects/0q3nHZcmCs2I9zJ5/datatables/WgJmnGTlPdzWmC3Q"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "keyValue": "={{ $json.body.phone }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "call_start_time": "={{ $json.body.time }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "missed_time",
+              "displayName": "missed_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "call_start_time",
+              "displayName": "call_start_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3392,
+        1584
+      ],
+      "id": "404b21b7-12b8-4263-9fd3-bfa9723cfcdd",
+      "name": "Save Call Start Time"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "WgJmnGTlPdzWmC3Q",
+          "mode": "list",
+          "cachedResultName": "missed_calls_status",
+          "cachedResultUrl": "/projects/0q3nHZcmCs2I9zJ5/datatables/WgJmnGTlPdzWmC3Q"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "keyValue": "={{ $json.body.phone }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3408,
+        1968
+      ],
+      "id": "aa461e6b-970d-41d9-94d6-611e71f85c75",
+      "name": "Check If Was Pending",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "5962ba1d-5dc5-4ba3-9e38-3f78e4a1d26f",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "063df1dd-7cf2-4bd7-9b38-a4c099f5c885",
+              "leftValue": "={{ Math.abs(Number($('Missed Call Trigger').item.json.body.time) - Number($json.call_start_time)) }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        3632,
+        1968
+      ],
+      "id": "e3c985cd-e826-4094-ac0b-9d2e6d4f6b60",
+      "name": "Was It Pending?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "dataTableId": {
+          "__rl": true,
+          "value": "WgJmnGTlPdzWmC3Q",
+          "mode": "list",
+          "cachedResultName": "missed_calls_status",
+          "cachedResultUrl": "/projects/0q3nHZcmCs2I9zJ5/datatables/WgJmnGTlPdzWmC3Q"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "phone",
+              "keyValue": "={{ $('Missed Call Trigger').item.json.body.phone }}"
+            },
+            {
+              "keyName": "status",
+              "keyValue": "pending"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "status": "resolved"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "missed_time",
+              "displayName": "missed_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "call_start_time",
+              "displayName": "call_start_time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        3888,
+        1952
+      ],
+      "id": "4baa0c05-bdc5-4e62-bcca-74d929ed26ac",
+      "name": "Mark As Resolved"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hooks.slack.com/services/YOUR/WEBHOOK/URL",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"👤 {{ $('Check If Was Pending').item.json.name || 'Unknown' }} | <tel:{{ $('Check If Was Pending').item.json.phone }}|{{ $('Check If Was Pending').item.json.phone }}> | Missed Call at {{ DateTime.fromSeconds(Number($('Check If Was Pending').item.json.missed_time)).setZone('Asia/Kolkata').toFormat('hh:mm a') }} - Resolved by {{ $('Override Exists?').item.json.override_staff || $('Roster Lookup').item.json.receptionist_name }} at {{ DateTime.now().setZone('Asia/Kolkata').toFormat('hh:mm a') }} 🟢\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5184,
+        2064
+      ],
+      "id": "d8b7419f-8fa0-4b4c-af10-faf4060ed5aa",
+      "name": "Send Call Returned to Slack"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "61f35236-cf9e-45f6-9591-c5cf315b86d3",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4128,
+        1952
+      ],
+      "id": "8fcd8907-10c1-48fa-ab2e-f7385a3bb0c3",
+      "name": "Was Actually Updated?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const now = new Date();\nconst istDateStr = now.toLocaleString(\"en-US\", { timeZone: \"Asia/Kolkata\" });\nconst ist = new Date(istDateStr);\n\nconst hour = ist.getHours();\nconst dayOfWeek = ist.getDay();\n\nconst isDayShift = hour >= 10 && hour < 22;\nconst isSundayNight = (dayOfWeek === 0) && (!isDayShift);\nconst currentShiftType = (isDayShift || isSundayNight) ? 'day' : 'night';\n\nconst ROTATION_START = new Date('2026-07-27T09:00:00+05:30');\nconst msPerWeek = 7 * 24 * 60 * 60 * 1000;\nconst weeksSinceStart = Math.floor((ist - ROTATION_START) / msPerWeek);\nconst weekParity = weeksSinceStart % 2 === 0 ? 'even' : 'odd';\n\nconst slot = `${weekParity}_${currentShiftType}`;\n\nreturn {\n  json: {\n    ...($input.item.json),\n    shift_slot: slot\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4400,
+        1936
+      ],
+      "id": "5041b93f-fb17-4e34-bdea-f0e3abee4cdd",
+      "name": "Staff On Duty"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "shift_override",
+        "columns": {
+          "column": [
+            {
+              "name": "shift_slot"
+            },
+            {
+              "name": "override_date"
+            },
+            {
+              "name": "override_staff"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2784,
+        1840
+      ],
+      "id": "136c3392-80da-4fa3-8e1a-b7789fe49f6b",
+      "name": "shift_override"
+    },
+    {
+      "parameters": {
+        "resource": "table",
+        "operation": "create",
+        "tableName": "staff_schedule",
+        "columns": {
+          "column": [
+            {
+              "name": "receptionist_name"
+            },
+            {
+              "name": "shift_slot"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2784,
+        2080
+      ],
+      "id": "9885109a-4fe4-45b1-a684-d530e7253a53",
+      "name": "staff_schedule"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "39xB3sbkEQfplcMn",
+          "mode": "list",
+          "cachedResultName": "shift_override",
+          "cachedResultUrl": "/projects/0q3nHZcmCs2I9zJ5/datatables/39xB3sbkEQfplcMn"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "shift_slot",
+              "keyValue": "={{ $json.shift_slot }}"
+            },
+            {
+              "keyName": "override_date",
+              "keyValue": "={{ new Date().toLocaleDateString('en-CA', {timeZone: 'Asia/Kolkata'}) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4640,
+        1936
+      ],
+      "id": "c9db8995-ef82-4164-9a00-aedbab7fbd9f",
+      "name": "Override Check",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2d6e0208-5039-404b-b3de-7d7c455bcf33",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        4880,
+        1936
+      ],
+      "id": "e5243766-07c9-4702-b46b-1836e484b2cb",
+      "name": "Override Exists?"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "wLmGz6Xt17twaHQj",
+          "mode": "list",
+          "cachedResultName": "staff_schedule",
+          "cachedResultUrl": "/projects/0q3nHZcmCs2I9zJ5/datatables/wLmGz6Xt17twaHQj"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "shift_slot",
+              "keyValue": "={{ $('Staff On Duty').item.json.shift_slot }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4896,
+        2208
+      ],
+      "id": "199b7341-1dcd-4eab-a3d4-8b203fbcab52",
+      "name": "Roster Lookup",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3184,
+        2240
+      ],
+      "id": "fddf9ee2-8327-4064-9eeb-94ffb21cdb99",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 688,
+        "width": 288,
+        "color": "#000000"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2704,
+        1552
+      ],
+      "typeVersion": 1,
+      "id": "296ee66e-f7ca-4d88-9cbe-e8456311a1f5",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "YOUR_PAGERDUTY_ROUTING_KEY",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"payload\": {\n    \"summary\": \"Missed call from {{ $('Missed Call Trigger').item.json.body.phone }}\",\n    \"severity\": \"critical\",\n    \"source\": \"CM Residency Reception\"\n  },\n  \"routing_key\": \"1dff4b9df003420ec0e96b35410a4ffa\",\n  \"event_action\": \"trigger\",\n  \"dedup_key\": \"{{ $('Missed Call Trigger').item.json.body.phone }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        4608,
+        1392
+      ],
+      "id": "ce84fa43-8098-4baf-80a0-b89560399996",
+      "name": "Create PagerDuty Incident"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "YOUR_PAGERDUTY_ROUTING_KEY",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"routing_key\": \"1dff4b9df003420ec0e96b35410a4ffa\",\n  \"event_action\": \"resolve\",\n  \"dedup_key\": \"{{ $('Check If Was Pending').item.json.phone }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        5424,
+        2064
+      ],
+      "id": "a479e8ff-4d09-4f6b-9e0e-a05c0811681e",
+      "name": "Resolve PagerDuty Incident"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Missed Call Trigger": {
+      "main": [
+        [
+          {
+            "node": "Route By Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Already Pending?": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save New Missed Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route By Type": {
+      "main": [
+        [
+          {
+            "node": "Check If Pending",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Call Start Time",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check If Was Pending",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Pending": {
+      "main": [
+        [
+          {
+            "node": "Is Already Pending?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save New Missed Call": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Was Pending": {
+      "main": [
+        [
+          {
+            "node": "Was It Pending?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Was It Pending?": {
+      "main": [
+        [
+          {
+            "node": "Mark As Resolved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark As Resolved": {
+      "main": [
+        [
+          {
+            "node": "Was Actually Updated?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Was Actually Updated?": {
+      "main": [
+        [
+          {
+            "node": "Staff On Duty",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Staff On Duty": {
+      "main": [
+        [
+          {
+            "node": "Override Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Override Check": {
+      "main": [
+        [
+          {
+            "node": "Override Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Override Exists?": {
+      "main": [
+        [
+          {
+            "node": "Send Call Returned to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Roster Lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Roster Lookup": {
+      "main": [
+        [
+          {
+            "node": "Send Call Returned to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Call Start Time": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Slack": {
+      "main": [
+        [
+          {
+            "node": "Create PagerDuty Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Call Returned to Slack": {
+      "main": [
+        [
+          {
+            "node": "Resolve PagerDuty Incident",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "timezone": "Asia/Kolkata",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "e904f044-9bdb-49a4-b8d9-24eece5e9c3d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "707f3a2f4b2ddea0ac2ef914825f964872601004a580b2450851a8ce7233efdf"
+  },
+  "nodeGroups": [],
+  "id": "Thj0Y8Ha2cR17JVL",
+  "tags": []
+}
